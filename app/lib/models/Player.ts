@@ -1,4 +1,5 @@
 import { IScoring } from './Scoring';
+import { IInjuryHistory, IRiskProfile } from './Risk';
 
 /**
  * Roster positions.
@@ -96,4 +97,74 @@ export interface IPlayer extends IScoring {
    */
   tableName?: string;
   href?: string;
+}
+
+/**
+ * Advanced stats for player evaluation.
+ * These metrics provide deeper insight into player performance
+ * beyond basic stats.
+ */
+export interface IPlayerAdvanced {
+  /** WR/TE target percentage */
+  targetShare?: number;
+  /** Total air yards */
+  airYards?: number;
+  /** Red zone opportunities */
+  redZoneTargets?: number;
+  /** Snap count percentage */
+  snapPct?: number;
+  /** WR/TE efficiency */
+  yardsPerRouteRun?: number;
+  /** RB talent metric */
+  yardsAfterContact?: number;
+  /** QB pressure rate */
+  pressureRate?: number;
+  /** O-line quality */
+  passBlockWinRate?: number;
+}
+
+/**
+ * Risk-related data for a player.
+ * Used in advanced VOR calculations.
+ */
+export interface IPlayerRisk {
+  /** Player age */
+  age: number;
+  /** Historical injury data */
+  injuryHistory: IInjuryHistory;
+  /** Calculated risk profile - may not exist until calculated */
+  riskProfile?: IRiskProfile;
+  /** Historical weekly scores for consistency calculation */
+  weeklyScores?: number[];
+}
+
+/**
+ * Extended player interface with advanced stats and risk data.
+ * Extends the base IPlayer with optional advanced analytics.
+ */
+export interface IPlayerExtended extends IPlayer {
+  /** Advanced performance metrics */
+  advanced?: IPlayerAdvanced;
+  /** Risk and consistency data */
+  risk?: IPlayerRisk;
+  /** Risk-adjusted VOR value */
+  adjustedVOR?: number;
+}
+
+/**
+ * Type guard to check if a player has advanced stats data.
+ * @param player - The player to check
+ * @returns true if the player has advanced stats, false otherwise
+ */
+export function hasAdvancedStats(player: IPlayerExtended): boolean {
+  return player.advanced !== undefined;
+}
+
+/**
+ * Type guard to check if a player has a calculated risk profile.
+ * @param player - The player to check
+ * @returns true if the player has a risk profile, false otherwise
+ */
+export function hasRiskProfile(player: IPlayerExtended): boolean {
+  return player.risk?.riskProfile !== undefined;
 }
