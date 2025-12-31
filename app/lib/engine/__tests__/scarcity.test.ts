@@ -9,11 +9,14 @@ import {
   calculateScarcityPremium,
   calculateAllScarcityPremiums,
   applyScarcityPremium,
+  detectDropOffs,
+  getPicksUntilTierDrop,
 } from '../scarcity';
 import {
   IScarcitySettings,
   IPositionSupply,
   IScarcityPremium,
+  IDropOffAlert,
   DEFAULT_SCARCITY_SETTINGS,
 } from '../../models/Scarcity';
 import { IPlayerExtended, Position } from '../../models/Player';
@@ -585,6 +588,184 @@ describe('Scarcity Calculator Engine', () => {
       expect(applyScarcityPremium(baseVOR, 'TE', premiums)).toBe(48);
       expect(applyScarcityPremium(baseVOR, 'K', premiums)).toBe(41);
       expect(applyScarcityPremium(baseVOR, 'DST', premiums)).toBe(42);
+    });
+  });
+
+  describe('detectDropOffs', () => {
+    it('should detect drop-off when large VOR gap exists between tiers', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('RB', [80, 75, 70, 40, 35, 30, 10, 5]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const rbAlert = alerts.find((a) => a.position === 'RB');
+      expect(rbAlert).toBeDefined();
+      expect(rbAlert!.dropOffPoints).toBeGreaterThan(settings.dropOffThreshold);
+    });
+
+    it('should not create alert when VOR decline is gradual', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('WR', [60, 55, 50, 45, 40, 35, 30, 25]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const wrAlert = alerts.find((a) => a.position === 'WR');
+      expect(wrAlert).toBeUndefined();
+    });
+
+    it('should return critical severity when cliff is imminent (<=3 picks)', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('TE', [80, 75, 40, 35, 30, 25]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const teAlert = alerts.find((a) => a.position === 'TE');
+      expect(teAlert).toBeDefined();
+      expect(teAlert!.picksUntilDrop).toBeLessThanOrEqual(3);
+      expect(teAlert!.severity).toBe('critical');
+    });
+
+    it('should return warning severity for drop-offs further away (>3 picks)', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('QB', [90, 85, 80, 75, 70, 35, 30, 25]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const qbAlert = alerts.find((a) => a.position === 'QB');
+      expect(qbAlert).toBeDefined();
+      expect(qbAlert!.picksUntilDrop).toBeGreaterThan(3);
+      expect(qbAlert!.severity).toBe('warning');
+    });
+
+    it('should handle positions with no drop-offs gracefully', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('K', [30, 29, 28, 27, 26, 25]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const kAlert = alerts.find((a) => a.position === 'K');
+      expect(kAlert).toBeUndefined();
+    });
+
+    it('should handle empty position pools', () => {
+      const players: IPlayerExtended[] = [];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      expect(alerts).toHaveLength(0);
+    });
+
+    it('should exclude drafted players from drop-off calculations', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('RB', [80, 75, 70, 40, 35, 30]),
+      ];
+      const draftedKeys = new Set<string>(['rb_1', 'rb_2', 'rb_3']);
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const alerts = detectDropOffs(players, draftedKeys, settings);
+
+      const rbAlert = alerts.find((a) => a.position === 'RB');
+      if (rbAlert) {
+        expect(rbAlert.currentTierAvgVOR).toBeLessThan(70);
+      }
+    });
+  });
+
+  describe('getPicksUntilTierDrop', () => {
+    it('should return count of tier 1 players remaining', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('RB', [80, 70, 60, 40, 35, 30]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const picksUntil = getPicksUntilTierDrop(players, draftedKeys, 'RB', settings);
+
+      expect(picksUntil).toBe(3);
+    });
+
+    it('should account for drafted players', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('WR', [80, 70, 60, 55, 40, 35]),
+      ];
+      const draftedKeys = new Set<string>(['wr_1', 'wr_2']);
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const picksUntil = getPicksUntilTierDrop(players, draftedKeys, 'WR', settings);
+
+      expect(picksUntil).toBe(2);
+    });
+
+    it('should return 0 when no tier 1 players remain', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('TE', [80, 70, 60, 40, 35, 30]),
+      ];
+      const draftedKeys = new Set<string>(['te_1', 'te_2', 'te_3']);
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const picksUntil = getPicksUntilTierDrop(players, draftedKeys, 'TE', settings);
+
+      expect(picksUntil).toBe(0);
+    });
+
+    it('should handle empty position pool', () => {
+      const players: IPlayerExtended[] = [];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const picksUntil = getPicksUntilTierDrop(players, draftedKeys, 'QB', settings);
+
+      expect(picksUntil).toBe(0);
+    });
+
+    it('should use custom tier thresholds from settings', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('QB', [80, 75, 60, 55, 40, 35]),
+      ];
+      const draftedKeys = new Set<string>();
+      const customSettings: IScarcitySettings = {
+        ...DEFAULT_SCARCITY_SETTINGS,
+        tierThresholds: {
+          tier1: 70,
+          tier2: 40,
+        },
+      };
+
+      const picksUntil = getPicksUntilTierDrop(players, draftedKeys, 'QB', customSettings);
+
+      expect(picksUntil).toBe(2);
+    });
+
+    it('should only consider specified position', () => {
+      const players: IPlayerExtended[] = [
+        ...createMockPlayersForPosition('RB', [80, 70, 60]),
+        ...createMockPlayersForPosition('WR', [75, 65, 55, 50]),
+      ];
+      const draftedKeys = new Set<string>();
+      const settings = DEFAULT_SCARCITY_SETTINGS;
+
+      const rbPicks = getPicksUntilTierDrop(players, draftedKeys, 'RB', settings);
+      const wrPicks = getPicksUntilTierDrop(players, draftedKeys, 'WR', settings);
+
+      expect(rbPicks).toBe(3);
+      expect(wrPicks).toBe(4);
     });
   });
 });

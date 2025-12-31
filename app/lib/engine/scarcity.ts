@@ -9,6 +9,8 @@ import {
   IScarcityPremium,
   IScarcitySettings,
   ScarcitySeverity,
+  IDropOffAlert,
+  AlertSeverity,
 } from '../models/Scarcity';
 import { IPlayerExtended, Position, DraftablePositions } from '../models/Player';
 import { IRoster } from '../models/Team';
@@ -246,4 +248,126 @@ export function applyScarcityPremium(
 
   // Add premium to base VOR
   return baseVOR + positionPremium.premium;
+}
+
+/**
+ * Detects significant VOR drop-offs between tiers for all positions.
+ * Creates alerts when the gap between tier averages exceeds the threshold.
+ *
+ * @param players - Array of all players in the draft pool
+ * @param draftedKeys - Set of player keys that have already been drafted
+ * @param settings - Scarcity settings containing tier thresholds and dropOffThreshold
+ * @returns Array of drop-off alerts for positions with significant value cliffs
+ */
+export function detectDropOffs(
+  players: IPlayerExtended[],
+  draftedKeys: Set<string>,
+  settings: IScarcitySettings
+): IDropOffAlert[] {
+  const alerts: IDropOffAlert[] = [];
+
+  for (const position of DraftablePositions) {
+    // Get remaining players at this position, sorted by VOR descending
+    const remainingPlayers = players
+      .filter((p) => p.pos === position && !draftedKeys.has(p.key))
+      .sort((a, b) => (b.vor ?? 0) - (a.vor ?? 0));
+
+    if (remainingPlayers.length < 2) {
+      continue;
+    }
+
+    // Group players into tiers based on VOR thresholds
+    const tier1Players = remainingPlayers.filter(
+      (p) => (p.vor ?? 0) >= settings.tierThresholds.tier1
+    );
+    const tier2Players = remainingPlayers.filter(
+      (p) =>
+        (p.vor ?? 0) >= settings.tierThresholds.tier2 &&
+        (p.vor ?? 0) < settings.tierThresholds.tier1
+    );
+    const tier3Players = remainingPlayers.filter(
+      (p) => (p.vor ?? 0) < settings.tierThresholds.tier2
+    );
+
+    // Check drop-off between tier 1 and tier 2
+    if (tier1Players.length > 0 && tier2Players.length > 0) {
+      const tier1Avg =
+        tier1Players.reduce((sum, p) => sum + (p.vor ?? 0), 0) / tier1Players.length;
+      const tier2Avg =
+        tier2Players.reduce((sum, p) => sum + (p.vor ?? 0), 0) / tier2Players.length;
+      const dropOff = tier1Avg - tier2Avg;
+
+      if (dropOff > settings.dropOffThreshold) {
+        const picksUntilDrop = tier1Players.length;
+        const severity: AlertSeverity = picksUntilDrop <= 3 ? 'critical' : 'warning';
+
+        alerts.push({
+          position,
+          currentTierAvgVOR: tier1Avg,
+          nextTierAvgVOR: tier2Avg,
+          dropOffPoints: dropOff,
+          picksUntilDrop,
+          severity,
+        });
+      }
+    }
+
+    // Check drop-off between tier 2 and tier 3 (if no tier 1 alert and there are tier 2 players)
+    if (
+      tier2Players.length > 0 &&
+      tier3Players.length > 0 &&
+      !alerts.some((a) => a.position === position)
+    ) {
+      const tier2Avg =
+        tier2Players.reduce((sum, p) => sum + (p.vor ?? 0), 0) / tier2Players.length;
+      const tier3Avg =
+        tier3Players.reduce((sum, p) => sum + (p.vor ?? 0), 0) / tier3Players.length;
+      const dropOff = tier2Avg - tier3Avg;
+
+      if (dropOff > settings.dropOffThreshold) {
+        const picksUntilDrop = tier1Players.length + tier2Players.length;
+        const severity: AlertSeverity = picksUntilDrop <= 3 ? 'critical' : 'warning';
+
+        alerts.push({
+          position,
+          currentTierAvgVOR: tier2Avg,
+          nextTierAvgVOR: tier3Avg,
+          dropOffPoints: dropOff,
+          picksUntilDrop,
+          severity,
+        });
+      }
+    }
+  }
+
+  return alerts;
+}
+
+/**
+ * Gets the number of picks until the tier 1 players are exhausted at a position.
+ * Tier 1 players are those with VOR >= tier1Threshold.
+ *
+ * @param players - Array of all players in the draft pool
+ * @param draftedKeys - Set of player keys that have already been drafted
+ * @param position - The position to check
+ * @param settings - Scarcity settings containing tier thresholds
+ * @returns Number of tier 1 players remaining at the position
+ */
+export function getPicksUntilTierDrop(
+  players: IPlayerExtended[],
+  draftedKeys: Set<string>,
+  position: Position,
+  settings: IScarcitySettings
+): number {
+  // Get remaining players at this position
+  const remainingPlayers = players.filter(
+    (p) => p.pos === position && !draftedKeys.has(p.key)
+  );
+
+  // Count tier 1 players (VOR >= tier1Threshold)
+  const tier1Count = remainingPlayers.filter(
+    (p) => (p.vor ?? 0) >= settings.tierThresholds.tier1
+  ).length;
+
+  return tier1Count;
 }
