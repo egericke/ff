@@ -11,6 +11,11 @@ const config = {
     'lib/**/*.{ts,tsx}',
     '!lib/**/*.d.ts',
   ],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: 'tsconfig.test.json',
+    }],
+  },
 };
 
 module.exports = config;
