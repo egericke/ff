@@ -10,7 +10,7 @@ PROJECTIONS = os.path.join(DIR, "processed", f"Projections-{YEAR}.json")
 
 
 def upload():
-    # uses AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY from .env
+    """Upload projections to S3."""
     s3 = boto3.client("s3")
 
     logging.info(
@@ -29,8 +29,12 @@ def upload():
         s3.upload_file(
             PROJECTIONS,
             os.environ["S3_BUCKET"],
-            f"history/f{datetime.datetime.now().strftime('%m:%d:%Y %H:%M:%S')}",
+            f"history/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json",
         )
-    except:
+        logging.info("Upload completed successfully")
+    except KeyboardInterrupt:
+        logging.info("Upload interrupted by user")
+        raise
+    except Exception:
         logging.exception("failed to upload")
         raise

@@ -205,11 +205,14 @@ def scrape():
         scrape_cbs()
         scrape_nfl()
         scrape_fantasy_pros()
-        DRIVER.quit()
-    except:
-        DRIVER.quit()
+    except KeyboardInterrupt:
+        logging.info("Scraping interrupted by user")
+        raise
+    except Exception:
         logging.exception("Failed to scrape")
         raise
+    finally:
+        DRIVER.quit()
 
 
 def scrape_espn():
@@ -570,7 +573,7 @@ def scrape_nfl():
                 time.sleep(0.5)
                 scroll()
                 time.sleep(0.5)
-            except:
+            except Exception:
                 logging.exception("Failed to click next button")
                 break
 
