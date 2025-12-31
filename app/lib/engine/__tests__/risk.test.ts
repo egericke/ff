@@ -9,10 +9,11 @@ import {
   calculatePositionRisk,
   calculateStatusFactor,
   calculateInjuryRisk,
+  calculateConsistencyScore,
+  calculateFloorCeiling,
 } from '../risk';
 import {
   IInjuryHistory,
-  IRiskSettings,
   HealthStatus,
   DEFAULT_RISK_SETTINGS,
 } from '../../models/Risk';
@@ -301,6 +302,134 @@ describe('Risk Calculator Engine', () => {
       const risk2 = calculateInjuryRisk(history, 28, 'WR', settings);
 
       expect(risk1).toBe(risk2);
+    });
+  });
+
+  describe('calculateConsistencyScore', () => {
+    it('should return high score (>0.8) for consistent player', () => {
+      // Very consistent scoring pattern
+      const weeklyScores = [15, 16, 15, 16, 15, 16];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBeGreaterThan(0.8);
+    });
+
+    it('should return low score (<0.5) for boom/bust player', () => {
+      // Highly variable scoring pattern
+      const weeklyScores = [5, 30, 8, 25, 3, 28];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBeLessThan(0.5);
+    });
+
+    it('should return exactly 1 for perfect consistency', () => {
+      // All same values = no variance
+      const weeklyScores = [20, 20, 20, 20];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBe(1);
+    });
+
+    it('should return 0 for empty array', () => {
+      const weeklyScores: number[] = [];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBe(0);
+    });
+
+    it('should return 1 for single value', () => {
+      const weeklyScores = [25];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBe(1);
+    });
+
+    it('should return 0 for all zeros (avoid division by zero)', () => {
+      const weeklyScores = [0, 0, 0, 0];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBe(0);
+    });
+
+    it('should be bounded 0-1 for extreme variance', () => {
+      // Extreme variance case
+      const weeklyScores = [1, 100, 1, 100, 1, 100];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(1);
+    });
+
+    it('should handle moderate consistency correctly', () => {
+      // Moderate variance
+      const weeklyScores = [10, 15, 12, 18, 14, 11];
+      const score = calculateConsistencyScore(weeklyScores);
+      expect(score).toBeGreaterThan(0.5);
+      expect(score).toBeLessThan(1);
+    });
+  });
+
+  describe('calculateFloorCeiling', () => {
+    it('should have floor < projection < ceiling for normal data', () => {
+      const weeklyScores = [10, 12, 15, 18, 20, 22, 25, 28, 30, 32];
+      const seasonProjection = 300;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      expect(result.floor).toBeLessThan(seasonProjection);
+      expect(result.ceiling).toBeGreaterThan(seasonProjection);
+    });
+
+    it('should return projection for both floor and ceiling when empty array', () => {
+      const weeklyScores: number[] = [];
+      const seasonProjection = 250;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      expect(result.floor).toBe(seasonProjection);
+      expect(result.ceiling).toBe(seasonProjection);
+      expect(result.weeklyVariance).toBe(0);
+    });
+
+    it('should have weekly variance > 0 for variable data', () => {
+      const weeklyScores = [10, 20, 15, 25, 12, 28];
+      const seasonProjection = 300;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      expect(result.weeklyVariance).toBeGreaterThan(0);
+    });
+
+    it('should calculate percentiles correctly', () => {
+      // With 10 data points, 10th percentile should be near lowest, 90th near highest
+      const weeklyScores = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+      const seasonProjection = 500;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      // 10th percentile (index 1) = 10, 90th percentile (index 8) = 45
+      // Floor should scale 10 to season (10 * 17 weeks = 170, but scaled to projection ratio)
+      // Ceiling should scale 45 similarly
+      expect(result.floor).toBeLessThan(result.ceiling);
+    });
+
+    it('should return zero variance for identical weekly scores', () => {
+      const weeklyScores = [20, 20, 20, 20, 20];
+      const seasonProjection = 340;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      expect(result.weeklyVariance).toBe(0);
+      expect(result.floor).toBe(result.ceiling);
+    });
+
+    it('should handle single week data', () => {
+      const weeklyScores = [25];
+      const seasonProjection = 425;
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      // Single value: floor = ceiling = projection based on that week
+      expect(result.floor).toBe(result.ceiling);
+      expect(result.weeklyVariance).toBe(0);
+    });
+
+    it('should scale floor and ceiling appropriately to season projection', () => {
+      const weeklyScores = [10, 15, 20, 25, 30];
+      const seasonProjection = 340; // ~20 points per week * 17 weeks
+      const result = calculateFloorCeiling(weeklyScores, seasonProjection);
+
+      // Floor and ceiling should be reasonable values relative to projection
+      expect(result.floor).toBeGreaterThan(0);
+      expect(result.ceiling).toBeGreaterThan(0);
+      expect(result.ceiling).toBeGreaterThanOrEqual(result.floor);
     });
   });
 });

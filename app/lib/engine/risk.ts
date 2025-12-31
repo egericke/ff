@@ -162,3 +162,186 @@ export function calculateInjuryRisk(
   const riskScore = weightedSum * 100;
   return Math.max(0, Math.min(100, riskScore));
 }
+
+/**
+ * Calculates the mean (average) of an array of numbers.
+ *
+ * @param values - Array of numbers
+ * @returns The mean value, or 0 if array is empty
+ */
+function calculateMean(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  const sum = values.reduce((acc, val) => acc + val, 0);
+  return sum / values.length;
+}
+
+/**
+ * Calculates the standard deviation of an array of numbers.
+ *
+ * @param values - Array of numbers
+ * @returns The standard deviation, or 0 if array is empty or has single value
+ */
+function calculateStdDev(values: number[]): number {
+  if (values.length <= 1) {
+    return 0;
+  }
+  const mean = calculateMean(values);
+  const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
+  const variance = squaredDiffs.reduce((acc, val) => acc + val, 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+/**
+ * Calculates the percentile value from a sorted array of numbers.
+ *
+ * @param sortedValues - Array of numbers (must be sorted ascending)
+ * @param percentile - The percentile to calculate (0-100)
+ * @returns The value at the specified percentile
+ */
+function calculatePercentile(sortedValues: number[], percentile: number): number {
+  if (sortedValues.length === 0) {
+    return 0;
+  }
+  if (sortedValues.length === 1) {
+    return sortedValues[0];
+  }
+
+  const index = (percentile / 100) * (sortedValues.length - 1);
+  const lowerIndex = Math.floor(index);
+  const upperIndex = Math.ceil(index);
+
+  if (lowerIndex === upperIndex) {
+    return sortedValues[lowerIndex];
+  }
+
+  // Linear interpolation between the two closest values
+  const fraction = index - lowerIndex;
+  return (
+    sortedValues[lowerIndex] * (1 - fraction) + sortedValues[upperIndex] * fraction
+  );
+}
+
+/**
+ * Calculates a consistency score based on weekly scoring patterns.
+ * Uses coefficient of variation inverted to produce a 0-1 scale
+ * where higher values indicate more consistent performance.
+ *
+ * Formula: 1 - (stdDev / mean)
+ *
+ * @param weeklyScores - Array of weekly fantasy point scores
+ * @returns A value between 0 (highly variable) and 1 (perfectly consistent)
+ */
+export function calculateConsistencyScore(weeklyScores: number[]): number {
+  // Handle empty array
+  if (weeklyScores.length === 0) {
+    return 0;
+  }
+
+  // Handle single value (no variance possible)
+  if (weeklyScores.length === 1) {
+    return 1;
+  }
+
+  const mean = calculateMean(weeklyScores);
+
+  // Handle all zeros (avoid division by zero)
+  if (mean === 0) {
+    return 0;
+  }
+
+  const stdDev = calculateStdDev(weeklyScores);
+
+  // If no variance (all same values), return perfect consistency
+  if (stdDev === 0) {
+    return 1;
+  }
+
+  // Coefficient of variation inverted
+  const coefficientOfVariation = stdDev / mean;
+  const consistencyScore = 1 - coefficientOfVariation;
+
+  // Clamp to 0-1 range
+  return Math.max(0, Math.min(1, consistencyScore));
+}
+
+/**
+ * Result of floor/ceiling calculation.
+ */
+export interface FloorCeilingResult {
+  /** 10th percentile scaled to season total */
+  floor: number;
+  /** 90th percentile scaled to season total */
+  ceiling: number;
+  /** Weekly variance (stdDev / mean) */
+  weeklyVariance: number;
+}
+
+/**
+ * Calculates floor, ceiling, and weekly variance based on historical weekly scores.
+ * Floor is based on 10th percentile weekly performance.
+ * Ceiling is based on 90th percentile weekly performance.
+ *
+ * @param weeklyScores - Array of weekly fantasy point scores
+ * @param seasonProjection - The projected season total points
+ * @returns Object containing floor, ceiling, and weekly variance
+ */
+export function calculateFloorCeiling(
+  weeklyScores: number[],
+  seasonProjection: number
+): FloorCeilingResult {
+  // Handle empty array - return projection for both
+  if (weeklyScores.length === 0) {
+    return {
+      floor: seasonProjection,
+      ceiling: seasonProjection,
+      weeklyVariance: 0,
+    };
+  }
+
+  const mean = calculateMean(weeklyScores);
+  const stdDev = calculateStdDev(weeklyScores);
+
+  // Calculate weekly variance (coefficient of variation)
+  const weeklyVariance = mean === 0 ? 0 : stdDev / mean;
+
+  // Handle single value or no variance
+  if (weeklyScores.length === 1 || stdDev === 0) {
+    return {
+      floor: seasonProjection,
+      ceiling: seasonProjection,
+      weeklyVariance: 0,
+    };
+  }
+
+  // Sort scores for percentile calculation
+  const sortedScores = [...weeklyScores].sort((a, b) => a - b);
+
+  // Calculate 10th and 90th percentiles
+  const percentile10 = calculatePercentile(sortedScores, 10);
+  const percentile90 = calculatePercentile(sortedScores, 90);
+
+  // Scale percentiles to season projection
+  // If mean is 0, avoid division by zero
+  if (mean === 0) {
+    return {
+      floor: seasonProjection,
+      ceiling: seasonProjection,
+      weeklyVariance: 0,
+    };
+  }
+
+  // Calculate scaling factor (projection per weekly average)
+  const scalingFactor = seasonProjection / mean;
+
+  // Scale floor and ceiling
+  const floor = percentile10 * scalingFactor;
+  const ceiling = percentile90 * scalingFactor;
+
+  return {
+    floor,
+    ceiling,
+    weeklyVariance,
+  };
+}
