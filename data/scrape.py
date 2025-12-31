@@ -585,7 +585,7 @@ def scrape_nfl():
     df = unify_columns(df)
     df.to_csv(os.path.join(out, f"NFL-Projections-{YEAR}.csv"), index=False)
 
-    # validate(df)
+    validate(df, strict=False)
 
 
 def scrape_fantasy_pros():
