@@ -48,3 +48,17 @@ __pycache__
 **/packages/
 build/
 out/
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+data/.env
+
+# Node modules (ensure coverage)
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo
