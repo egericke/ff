@@ -43,3 +43,23 @@ export {
   hasAdvancedStats,
   hasRiskProfile,
 } from '../models/Player';
+
+// Schedule strength calculations
+export {
+  calculateMatchupRating,
+  calculateWeekWeight,
+  calculateScheduleScore,
+  calculateSOS,
+} from './schedule';
+
+// Re-export from Schedule model
+export {
+  MatchupRating,
+  IDefenseRankings,
+  IWeeklyMatchup,
+  IPlayerSchedule,
+  IWeekWeights,
+  IScheduleSettings,
+  DEFAULT_SCHEDULE_SETTINGS,
+  isValidSchedule,
+} from '../models/Schedule';
