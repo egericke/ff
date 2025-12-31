@@ -3,9 +3,9 @@ name: data
 on:
   push:
   schedule:
-    # “At 12:00 in every month from July through October.”
-    # https://crontab.guru/#0_12_*_7-9_*
-    - cron: "0 */4 * 7-9 *"
+    # "At 12:00 in every month from July through October."
+    # https://crontab.guru/#0_*/4_*_7-10_*
+    - cron: "0 */4 * 7-10 *"
   workflow_dispatch:
 
 jobs:
