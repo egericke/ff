@@ -243,7 +243,7 @@ const playersWithForecast = (scoring: IScoring, players: IPlayer[]): IPlayerFore
 /**
  * Estimate the points a team will earn from points against over season
  */
-const dstPointsPerGame = (pts: number): number => {
+export const dstPointsPerGame = (pts: number | null): number => {
   if (pts === null) {
     return 0;
   }
@@ -260,7 +260,7 @@ const dstPointsPerGame = (pts: number): number => {
   } else if (pts < 35) {
     return -1;
   } else if (pts < 46) {
-    -3;
+    return -3;
   }
   return -5;
 };
