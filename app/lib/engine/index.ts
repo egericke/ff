@@ -70,6 +70,8 @@ export {
   calculateScarcityPremium,
   calculateAllScarcityPremiums,
   applyScarcityPremium,
+  detectDropOffs,
+  getPicksUntilTierDrop,
 } from './scarcity';
 
 // Re-export from Scarcity model
