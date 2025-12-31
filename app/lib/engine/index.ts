@@ -63,3 +63,24 @@ export {
   DEFAULT_SCHEDULE_SETTINGS,
   isValidSchedule,
 } from '../models/Schedule';
+
+// Scarcity calculations
+export {
+  calculatePositionSupply,
+  calculateScarcityPremium,
+  calculateAllScarcityPremiums,
+  applyScarcityPremium,
+} from './scarcity';
+
+// Re-export from Scarcity model
+export {
+  IPositionSupply,
+  IScarcityPremium,
+  IDropOffAlert,
+  IScarcitySettings,
+  IDraftScarcityState,
+  ScarcitySeverity,
+  AlertSeverity,
+  DEFAULT_SCARCITY_SETTINGS,
+  isValidScarcityState,
+} from '../models/Scarcity';
