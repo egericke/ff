@@ -2,6 +2,13 @@ name: data
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - "data/**"
+  pull_request:
+    paths:
+      - "data/**"
   schedule:
     # "At 12:00 in every month from July through October."
     # https://crontab.guru/#0_*/4_*_7-10_*
@@ -9,9 +16,33 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Test Data
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: data
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          cache: "pip"
+          cache-dependency-path: data/requirements.txt
+      - run: python3 -m pip install -r requirements.txt
+      - run: python3 -m pip install pytest pytest-cov
+      - run: python3 -m pytest tests/ -v --cov=. --cov-report=xml
+      - uses: codecov/codecov-action@v3
+        with:
+          files: data/coverage.xml
+          flags: data
+          fail_ci_if_error: false
+
   scrape:
     name: Scrape Data
     runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v3
       - uses: browser-actions/setup-chrome@latest
