@@ -157,9 +157,13 @@ export default ({
 
       <div id="table">
         <div id="table-body">
-          {players
-            .filter((_, i) => !filteredPlayers[i])
-            .map((player: ITablePlayer, i) => (
+          {players.map((player: ITablePlayer, originalIndex: number) => {
+            // Skip filtered players
+            if (filteredPlayers[originalIndex]) {
+              return null;
+            }
+
+            return (
               <PlayerTableRow
                 key={player.key}
                 adpCol={adpCol}
@@ -169,7 +173,7 @@ export default ({
                   resetPositionFilter();
                   inputRef.current?.focus();
                 }}
-                draftSoon={draftSoon[i]}
+                draftSoon={draftSoon[originalIndex]}
                 byeWeekConflict={byeWeeks[player.bye]}
                 inValuablePosition={valuedPositions[player.pos]}
                 player={player}
@@ -181,7 +185,8 @@ export default ({
                   inputRef.current?.focus();
                 }}
               />
-            ))}
+            );
+          })}
         </div>
       </div>
     </div>
