@@ -86,3 +86,32 @@ export {
   DEFAULT_SCARCITY_SETTINGS,
   isValidScarcityState,
 } from '../models/Scarcity';
+
+// Enhanced VOR calculations
+export {
+  calculateEnhancedVOR,
+  calculateAllEnhancedVORs,
+  getPlayerWithEnhancedVOR,
+} from './enhancedVOR';
+
+// Recommendation engine
+export {
+  getTopRecommendations,
+  getValueIndicator,
+  getUrgency,
+  generateReasons,
+} from './recommendations';
+
+// Re-export from EnhancedVOR model
+export type {
+  IEnhancedVOR,
+  IPlayerRecommendation,
+  IRecommendationSettings,
+  Urgency,
+  ValueIndicator,
+} from '../models/EnhancedVOR';
+export {
+  DEFAULT_RECOMMENDATION_SETTINGS,
+  isValidEnhancedVOR,
+  isValidRecommendation,
+} from '../models/EnhancedVOR';
