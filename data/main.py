@@ -1,11 +1,19 @@
+"""Main entry point for data pipeline."""
+
 import logging
 import os
+import sys
 
-import aggregate
-import scrape
+# Add data directory to path for imports
+sys.path.insert(0, os.path.dirname(__file__))
+
+from pipeline import run_pipeline
 import upload
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s:%(name)s:%(message)s"
+)
 
 
 def run():
@@ -15,14 +23,14 @@ def run():
         raise RuntimeError("missing env vars")
 
     try:
-        scrape.scrape()
-        aggregate.aggregate()
+        output_path = run_pipeline(validate=True, strict=False)
         upload.upload()
+        logging.info(f"Pipeline complete: {output_path}")
     except KeyboardInterrupt:
         logging.info("Pipeline interrupted by user")
         raise
     except Exception:
-        logging.exception("failed to update data")
+        logging.exception("Failed to update data")
         raise
 
 
