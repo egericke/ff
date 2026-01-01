@@ -1,0 +1,241 @@
+/* app/components/Dashboard/Dashboard.css */
+
+/* Risk Slider */
+.RiskSlider {
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.RiskSlider-Header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.RiskSlider-Label {
+  font-weight: 600;
+}
+
+.RiskSlider-Value {
+  color: #1890ff;
+  cursor: help;
+}
+
+/* Scarcity Meter */
+.ScarcityMeter {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fafafa;
+  margin-bottom: 8px;
+}
+
+.ScarcityMeter.severity-critical {
+  background: #fff1f0;
+  border-left: 3px solid #ff4d4f;
+}
+
+.ScarcityMeter.severity-high {
+  background: #fff7e6;
+  border-left: 3px solid #fa8c16;
+}
+
+.ScarcityMeter.severity-medium {
+  background: #fffbe6;
+  border-left: 3px solid #fadb14;
+}
+
+.ScarcityMeter-Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ScarcityMeter-Position {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ScarcityMeter-Bar {
+  height: 6px;
+  background: #e8e8e8;
+  border-radius: 3px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.ScarcityMeter-Fill {
+  height: 100%;
+  background: linear-gradient(90deg, #52c41a, #fadb14, #ff4d4f);
+  transition: width 0.3s ease;
+}
+
+.ScarcityMeter-Details {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Recommendation Card */
+.RecommendationCard {
+  display: flex;
+  align-items: stretch;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: box-shadow 0.2s ease;
+}
+
+.RecommendationCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.RecommendationCard-Rank {
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1890ff;
+}
+
+.RecommendationCard-Content {
+  flex: 1;
+  padding: 0 12px;
+}
+
+.RecommendationCard-Header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.RecommendationCard-Name {
+  font-weight: 600;
+}
+
+.RecommendationCard-Team {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.RecommendationCard-Stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.RecommendationCard-VOR {
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.RecommendationCard-ADP {
+  color: #1890ff;
+}
+
+.RecommendationCard-Indicators {
+  margin-bottom: 4px;
+}
+
+.RecommendationCard-Reasons {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.RecommendationCard-Reason {
+  display: block;
+}
+
+.RecommendationCard-Actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+/* Scarcity Panel */
+.ScarcityPanel {
+  padding: 12px;
+}
+
+.ScarcityPanel-Alerts {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.ScarcityPanel-Alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.ScarcityPanel-Alert.severity-critical {
+  background: #fff1f0;
+}
+
+.ScarcityPanel-Alert.severity-warning {
+  background: #fffbe6;
+}
+
+/* Recommendations Panel */
+.RecommendationsPanel {
+  padding: 12px;
+}
+
+.RecommendationsPanel-Pick {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.RecommendationsPanel-Empty {
+  text-align: center;
+  color: #8c8c8c;
+  padding: 24px;
+}
+
+/* Player Detail Popup */
+.PlayerDetail section {
+  margin-bottom: 16px;
+}
+
+.PlayerDetail h4 {
+  margin-bottom: 8px;
+  color: #1890ff;
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 4px;
+}
+
+.PlayerDetail-VOR-Row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.PlayerDetail-VOR-Total {
+  border-top: 1px solid #e8e8e8;
+  margin-top: 8px;
+  padding-top: 8px;
+  font-size: 16px;
+}
+
+.PlayerDetail-Risk-Row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.PlayerDetail-Risk-Row span:first-child {
+  width: 100px;
+}
