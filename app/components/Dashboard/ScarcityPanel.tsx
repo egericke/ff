@@ -1,18 +1,19 @@
 // app/components/Dashboard/ScarcityPanel.tsx
 import * as React from 'react';
-import { IScarcityPremium, IDropOffAlert } from '../../lib/models/Scarcity';
+import { IScarcityPremium, IDropOffAlert, IPositionSupply } from '../../lib/models/Scarcity';
 import ScarcityMeter from './ScarcityMeter';
 
 interface IScarcityPanelProps {
   premiums: IScarcityPremium[];
   alerts: IDropOffAlert[];
+  positionSupply?: Partial<Record<string, IPositionSupply>>;
 }
 
 /**
  * Panel displaying positional scarcity across all positions
  * with drop-off alerts.
  */
-export default function ScarcityPanel({ premiums, alerts }: IScarcityPanelProps) {
+export default function ScarcityPanel({ premiums, alerts, positionSupply }: IScarcityPanelProps) {
   // Filter to main positions only
   const mainPositions = premiums.filter((p) =>
     ['QB', 'RB', 'WR', 'TE'].includes(p.position)
@@ -25,16 +26,20 @@ export default function ScarcityPanel({ premiums, alerts }: IScarcityPanelProps)
       </header>
 
       <div className="ScarcityPanel-Meters">
-        {mainPositions.map((premium) => (
-          <ScarcityMeter
-            key={premium.position}
-            position={premium.position}
-            severity={premium.severity}
-            tier1Remaining={0}
-            tier2Remaining={0}
-            totalRemaining={0}
-          />
-        ))}
+        {mainPositions.map((premium) => {
+          const supply = positionSupply?.[premium.position];
+          return (
+            <ScarcityMeter
+              key={premium.position}
+              position={premium.position}
+              severity={premium.severity}
+              premium={premium.premium}
+              tier1Remaining={supply?.tier1Remaining ?? 0}
+              tier2Remaining={supply?.tier2Remaining ?? 0}
+              totalRemaining={supply?.remainingCount ?? 0}
+            />
+          );
+        })}
       </div>
 
       {alerts.length > 0 && (

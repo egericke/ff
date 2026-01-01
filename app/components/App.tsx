@@ -12,11 +12,12 @@ import TeamPicks from './TeamPicks';
 
 import { ScarcityPanel, RecommendationsPanel, PlayerDetailPopup, RiskSlider } from './Dashboard';
 import { IPlayerExtended } from '../lib/models/Player';
-import { DEFAULT_SCARCITY_SETTINGS } from '../lib/models/Scarcity';
+import { DEFAULT_SCARCITY_SETTINGS, IPositionSupply } from '../lib/models/Scarcity';
 import { IRiskSettings, DEFAULT_RISK_SETTINGS } from '../lib/models/Risk';
 import { DEFAULT_RECOMMENDATION_SETTINGS, IEnhancedVOR } from '../lib/models/EnhancedVOR';
 import { IRoster } from '../lib/models/Team';
-import { calculateAllScarcityPremiums, detectDropOffs } from '../lib/engine/scarcity';
+import { DraftablePositions } from '../lib/models/Player';
+import { calculateAllScarcityPremiums, detectDropOffs, calculatePositionSupply } from '../lib/engine/scarcity';
 import { calculateAllEnhancedVORs } from '../lib/engine/enhancedVOR';
 import { getTopRecommendations } from '../lib/engine/recommendations';
 import { DEFAULT_SCHEDULE_SETTINGS } from '../lib/models/Schedule';
@@ -101,6 +102,17 @@ class App extends React.Component<IAppProps, IState> {
       riskTolerance,
     };
 
+    // Calculate position supply for each position
+    const positionSupply: Partial<Record<string, IPositionSupply>> = {};
+    for (const pos of DraftablePositions) {
+      positionSupply[pos] = calculatePositionSupply(
+        players,
+        draftedKeys,
+        pos,
+        DEFAULT_SCARCITY_SETTINGS
+      );
+    }
+
     // Calculate scarcity premiums
     const scarcityPremiums = calculateAllScarcityPremiums(
       players,
@@ -140,7 +152,7 @@ class App extends React.Component<IAppProps, IState> {
       DEFAULT_RECOMMENDATION_SETTINGS
     );
 
-    return { scarcityPremiums, dropOffAlerts, recommendations, enhancedVORs };
+    return { scarcityPremiums, dropOffAlerts, recommendations, enhancedVORs, positionSupply };
   }
 
   public render() {
@@ -161,7 +173,7 @@ class App extends React.Component<IAppProps, IState> {
       );
     }
 
-    const { scarcityPremiums, dropOffAlerts, recommendations } = this.getEnhancedData();
+    const { scarcityPremiums, dropOffAlerts, recommendations, positionSupply } = this.getEnhancedData();
 
     return (
       <div id="App">
@@ -195,6 +207,7 @@ class App extends React.Component<IAppProps, IState> {
               <ScarcityPanel
                 premiums={scarcityPremiums}
                 alerts={dropOffAlerts}
+                positionSupply={positionSupply}
               />
             </div>
           )}

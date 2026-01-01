@@ -1,4 +1,6 @@
 // app/components/Dashboard/index.ts
+// Note: Dashboard.css is imported in pages/_app.tsx (global CSS requirement)
+
 export { default as RiskSlider } from './RiskSlider';
 export { default as ScarcityMeter } from './ScarcityMeter';
 export { default as ScarcityPanel } from './ScarcityPanel';

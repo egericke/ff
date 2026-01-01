@@ -6,6 +6,7 @@ import { ScarcitySeverity } from '../../lib/models/Scarcity';
 interface IScarcityMeterProps {
   position: Position;
   severity: ScarcitySeverity;
+  premium?: number;
   tier1Remaining: number;
   tier2Remaining: number;
   totalRemaining: number;
@@ -18,6 +19,7 @@ interface IScarcityMeterProps {
 export default function ScarcityMeter({
   position,
   severity,
+  premium = 0,
   tier1Remaining,
   tier2Remaining,
   totalRemaining,
@@ -38,6 +40,9 @@ export default function ScarcityMeter({
   // Calculate fill percentage (max 100%)
   const fillPercentage = Math.min((totalRemaining / 40) * 100, 100);
 
+  // Format premium with proper sign and rounding
+  const premiumDisplay = premium > 0 ? `+${premium.toFixed(1)}` : premium.toFixed(1);
+
   return (
     <div className={`ScarcityMeter severity-${severity}`}>
       <div className="ScarcityMeter-Header">
@@ -45,7 +50,10 @@ export default function ScarcityMeter({
         <span className="ScarcityMeter-Indicator">
           {getSeverityEmoji()}
           {getSeverityLabel() && (
-            <span className="ScarcityMeter-Label">{getSeverityLabel()}</span>
+            <span className="ScarcityMeter-Label"> {getSeverityLabel()}</span>
+          )}
+          {premium !== 0 && (
+            <span className="ScarcityMeter-Premium"> ({premiumDisplay})</span>
           )}
         </span>
       </div>
@@ -57,6 +65,7 @@ export default function ScarcityMeter({
       </div>
       <div className="ScarcityMeter-Details">
         <span className="small">{tier1Remaining} elite</span>
+        <span className="small"> · </span>
         <span className="small">{tier2Remaining} starter</span>
       </div>
     </div>

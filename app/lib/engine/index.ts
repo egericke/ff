@@ -12,8 +12,8 @@ export {
   calculateStatusFactor,
   calculateConsistencyScore,
   calculateFloorCeiling,
-  FloorCeilingResult,
 } from './risk';
+export type { FloorCeilingResult } from './risk';
 
 // Risk profile builder
 export { buildRiskProfile } from './riskProfile';
@@ -22,26 +22,30 @@ export { buildRiskProfile } from './riskProfile';
 export {
   calculateRiskAdjustedVOR,
   applyRiskTolerance,
-  IRiskAdjustedVORResult,
 } from './vor';
+export type { IRiskAdjustedVORResult } from './vor';
 
 // Re-export from models
 export {
   DEFAULT_RISK_SETTINGS,
+  isValidRiskProfile,
+} from '../models/Risk';
+export type {
   IRiskProfile,
   IRiskSettings,
   IInjuryHistory,
   HealthStatus,
-  isValidRiskProfile,
 } from '../models/Risk';
 
 // Re-export from Player
 export {
+  hasAdvancedStats,
+  hasRiskProfile,
+} from '../models/Player';
+export type {
   IPlayerAdvanced,
   IPlayerRisk,
   IPlayerExtended,
-  hasAdvancedStats,
-  hasRiskProfile,
 } from '../models/Player';
 
 // Schedule strength calculations
@@ -54,14 +58,16 @@ export {
 
 // Re-export from Schedule model
 export {
+  DEFAULT_SCHEDULE_SETTINGS,
+  isValidSchedule,
+} from '../models/Schedule';
+export type {
   MatchupRating,
   IDefenseRankings,
   IWeeklyMatchup,
   IPlayerSchedule,
   IWeekWeights,
   IScheduleSettings,
-  DEFAULT_SCHEDULE_SETTINGS,
-  isValidSchedule,
 } from '../models/Schedule';
 
 // Scarcity calculations
@@ -76,6 +82,10 @@ export {
 
 // Re-export from Scarcity model
 export {
+  DEFAULT_SCARCITY_SETTINGS,
+  isValidScarcityState,
+} from '../models/Scarcity';
+export type {
   IPositionSupply,
   IScarcityPremium,
   IDropOffAlert,
@@ -83,8 +93,6 @@ export {
   IDraftScarcityState,
   ScarcitySeverity,
   AlertSeverity,
-  DEFAULT_SCARCITY_SETTINGS,
-  isValidScarcityState,
 } from '../models/Scarcity';
 
 // Enhanced VOR calculations

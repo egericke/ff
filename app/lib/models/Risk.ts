@@ -171,7 +171,9 @@ export function isValidRiskProfile(obj: unknown): obj is IRiskProfile {
   }
 
   // Validate floor <= ceiling
-  if (profile.floor > profile.ceiling) {
+  const floor = profile.floor as number;
+  const ceiling = profile.ceiling as number;
+  if (floor > ceiling) {
     return false;
   }
 

@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
 import './styles.css';
+import '../components/Dashboard/Dashboard.css';
 import { IPlayer } from 'lib/models/Player';
 
 if (typeof window !== 'undefined') {

@@ -50,9 +50,9 @@ export default function RecommendationCard({
         </div>
 
         <div className="RecommendationCard-Stats">
-          <Tooltip title="Enhanced VOR with all adjustments">
+          <Tooltip title={`Base VOR: ${enhancedVOR.baseVOR.toFixed(0)} + Risk: ${enhancedVOR.riskAdjustment.toFixed(1)} + Schedule: ${enhancedVOR.scheduleAdjustment.toFixed(1)} + Scarcity: ${enhancedVOR.scarcityPremium.toFixed(1)}`}>
             <span className="RecommendationCard-VOR">
-              VOR: {enhancedVOR.enhancedVOR.toFixed(0)}
+              VOR: {enhancedVOR.baseVOR.toFixed(0)} → {enhancedVOR.enhancedVOR.toFixed(0)}
             </span>
           </Tooltip>
           <Tooltip title="Your rank vs ADP (positive = value)">
