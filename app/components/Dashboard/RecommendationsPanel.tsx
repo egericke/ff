@@ -7,7 +7,7 @@ import RecommendationCard from './RecommendationCard';
 interface IRecommendationsPanelProps {
   recommendations: IPlayerRecommendation[];
   onDraft: (player: IPlayerExtended) => void;
-  onViewDetails: (player: IPlayerExtended) => void;
+  onViewDetails: (recommendation: IPlayerRecommendation) => void;
   currentPick: number;
   trackedTeam: number;
 }

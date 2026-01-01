@@ -7,7 +7,7 @@ import { IPlayerExtended } from '../../lib/models/Player';
 interface IRecommendationCardProps {
   recommendation: IPlayerRecommendation;
   onDraft: (player: IPlayerExtended) => void;
-  onViewDetails: (player: IPlayerExtended) => void;
+  onViewDetails: (recommendation: IPlayerRecommendation) => void;
   rank: number;
 }
 
@@ -80,7 +80,7 @@ export default function RecommendationCard({
         <Button type="primary" size="small" onClick={() => onDraft(player)}>
           Draft
         </Button>
-        <Button size="small" onClick={() => onViewDetails(player)}>
+        <Button size="small" onClick={() => onViewDetails(recommendation)}>
           Details
         </Button>
       </div>
