@@ -149,6 +149,8 @@ export interface IPlayerExtended extends IPlayer {
   risk?: IPlayerRisk;
   /** Risk-adjusted VOR value */
   adjustedVOR?: number;
+  /** Pre-calculated schedule score (from data pipeline) */
+  scheduleScore?: number;
 }
 
 /**

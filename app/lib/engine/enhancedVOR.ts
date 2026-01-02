@@ -189,21 +189,22 @@ export function getPlayerWithEnhancedVOR(
 
 /**
  * Gets the schedule score for a player.
- * If the player has schedule data attached, calculates the score.
+ * If the player has a pre-calculated scheduleScore, uses that.
  * Otherwise returns 0.
  *
  * @param player - The player
- * @param settings - Schedule settings
+ * @param settings - Schedule settings (unused if scheduleScore is present)
  * @returns The schedule score
  */
 function getPlayerScheduleScore(
   player: IPlayerExtended,
   settings: IScheduleSettings
 ): number {
-  // In a full implementation, we would look up the player's team schedule
-  // and calculate the schedule score using calculateScheduleScore.
-  // For now, we return 0 as the schedule data may not be attached to the player.
-  // The schedule score can be passed in directly when calling calculateEnhancedVOR.
+  // Use pre-calculated schedule score from data pipeline if available
+  if (player.scheduleScore !== undefined) {
+    return player.scheduleScore;
+  }
+  // Otherwise return 0
   return 0;
 }
 
